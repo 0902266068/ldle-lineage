@@ -1,0 +1,57 @@
+name: Deploy mobile game to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out this repository
+        uses: actions/checkout@v4
+
+      - name: Download the public game files
+        run: git clone --depth 1 https://github.com/pp771007/idle-lineage-class.git upstream
+
+      - name: Add the personal admin console
+        run: |
+          mkdir _site
+          rsync -a --exclude=.git upstream/ _site/
+          cp admin.js _site/admin.js
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const path = '_site/index.html';
+          let html = readFileSync(path, 'utf8');
+          if (!html.includes('admin.js')) {
+            const script = '    <script src="./admin.js?v=' + process.env.GITHUB_SHA + '"></script>\\n</body>';
+            const updated = html.replace(/<\\/body>/i, script);
+            if (updated === html) throw new Error('Could not find </body> in upstream index.html');
+            writeFileSync(path, updated);
+          }
+          NODE
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload website
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Publish website
+        id: deployment
+        uses: actions/deploy-pages@v4
