@@ -37,10 +37,11 @@ jobs:
           const path = '_site/index.html';
           let html = readFileSync(path, 'utf8');
           if (!html.includes('admin.js')) {
-            const script = '    <script src="./admin.js?v=' + process.env.GITHUB_SHA + '"></script>\\n</body>';
-            const updated = html.replace(/<\\/body>/i, script);
-            if (updated === html) throw new Error('Could not find </body> in upstream index.html');
-            writeFileSync(path, updated);
+            const script = '    <script src="./admin.js?v=' + process.env.GITHUB_SHA + '"></script>' + String.fromCharCode(10);
+            const pos = html.toLowerCase().lastIndexOf('</body>');
+            if (pos < 0) throw new Error('Could not find </body> in upstream index.html');
+            html = html.slice(0, pos) + script + html.slice(pos);
+            writeFileSync(path, html);
           }
           NODE
 
