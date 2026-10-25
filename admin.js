@@ -9,6 +9,23 @@
     maps: { title: '地圖出怪池', read: () => DB.maps, canCreate: false },
     drops: { title: '怪物掉落表', read: () => MOB_DROPS, canCreate: true }
   };
+  const bonusItems = {
+    potion_exp150: { n:'經驗藥水 150%',type:'pot',req:'all',p:10000,c:'text-emerald-300',d:'飲用後 30 分鐘內，獲得經驗倍率 ×1.5；可與其他階段經驗藥水疊加。',eff:'exp150',dur:1800,gachaWeight:0 },
+    potion_exp200: { n:'經驗藥水 200%',type:'pot',req:'all',p:20000,c:'text-emerald-300',d:'飲用後 30 分鐘內，獲得經驗倍率 ×2；可與其他階段經驗藥水疊加。',eff:'exp200',dur:1800,gachaWeight:0 },
+    potion_exp300: { n:'經驗藥水 300%',type:'pot',req:'all',p:40000,c:'text-emerald-300',d:'飲用後 30 分鐘內，獲得經驗倍率 ×3；可與其他階段經驗藥水疊加。',eff:'exp300',dur:1800,gachaWeight:0 },
+    potion_exp500: { n:'經驗藥水 500%',type:'pot',req:'all',p:80000,c:'text-emerald-300',d:'飲用後 30 分鐘內，獲得經驗倍率 ×5；可與其他階段經驗藥水疊加。',eff:'exp500',dur:1800,gachaWeight:0 },
+    potion_exp_stage2: { n:'二階段經驗藥水',type:'pot',req:'all',p:60000,c:'text-teal-300',d:'飲用後 30 分鐘內，獲得經驗倍率 ×2；可與其他階段經驗藥水疊加。',eff:'expStage2',dur:1800,gachaWeight:0 },
+    food_chocolate_cake: { n:'巧克力蛋糕',type:'pot',req:'all',p:5000,c:'text-amber-300',d:'食用後 30 分鐘內，攻擊速度提升 15%；可與其他加速效果疊加。',eff:'speedCake',dur:1800,gachaWeight:0 },
+    coin_honor: { n:'名譽貨幣',type:'pot',req:'all',p:20000,c:'text-yellow-300',d:'使用後 30 分鐘內，攻擊速度提升 30%；可與其他加速效果疊加。',eff:'speedHonor',dur:1800,gachaWeight:0 },
+    potion_speed_stage3: { n:'三階段加速藥水',type:'pot',req:'all',p:50000,c:'text-cyan-300',d:'飲用後 30 分鐘內，攻擊速度提升 50%；可與其他加速效果疊加。',eff:'speedStage3',dur:1800,gachaWeight:0 }
+  };
+  for(const [id,item] of Object.entries(bonusItems))if(!DB.items[id])DB.items[id]=item;
+  if(typeof BUFF_NAMES!=='undefined')Object.assign(BUFF_NAMES,{exp150:'經驗藥水 150%',exp200:'經驗藥水 200%',exp300:'經驗藥水 300%',exp500:'經驗藥水 500%',expStage2:'二階段經驗藥水',speedCake:'巧克力蛋糕',speedHonor:'名譽貨幣',speedStage3:'三階段加速藥水'});
+  for(const id of Object.keys(bonusItems))if(typeof SHOP_LISTS!=='undefined')for(const shop of ['default','npc_boni','npc_skvati'])if(Array.isArray(SHOP_LISTS[shop])&&!SHOP_LISTS[shop].includes(id))SHOP_LISTS[shop].push(id);
+  const originalExpGainMult=typeof getExpGainMult==='function'?getExpGainMult:null;
+  if(originalExpGainMult)window.getExpGainMult=function(lv){const base=originalExpGainMult(lv);if(!base||typeof player==='undefined'||Number(lv)!==Number(player.lv)||!player.buffs)return base;let mult=1;for(const [key,rate] of Object.entries({exp150:1.5,exp200:2,exp300:3,exp500:5,expStage2:2}))if(player.buffs[key]>0)mult*=rate;return base*mult;};
+  const originalCalcStats=typeof calcStats==='function'?calcStats:null;
+  if(originalCalcStats)window.calcStats=function(){const result=originalCalcStats.apply(this,arguments);if(typeof player!=='undefined'&&player?.d&&player?.buffs){let speed=1;for(const [key,rate] of Object.entries({speedCake:1.15,speedHonor:1.3,speedStage3:1.5}))if(player.buffs[key]>0)speed*=rate;player.d.aspd/=speed;if(player.d.aspdOff>0)player.d.aspdOff/=speed;}return result;};
   const source = {
     items: structuredClone(DB.items), mobs: structuredClone(DB.mobs),
     maps: structuredClone(DB.maps), drops: structuredClone(MOB_DROPS), exp: [...EXP_T]
