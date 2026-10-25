@@ -32,17 +32,19 @@ jobs:
           mkdir _site
           rsync -a --exclude=.git upstream/ _site/
           cp admin.js _site/admin.js
+          cp multiplayer.js _site/multiplayer.js
           node --input-type=module <<'NODE'
           import { readFileSync, writeFileSync } from 'node:fs';
           const path = '_site/index.html';
           let html = readFileSync(path, 'utf8');
-          if (!html.includes('admin.js')) {
-            const script = '    <script src="./admin.js?v=' + process.env.GITHUB_SHA + '"></script>' + String.fromCharCode(10);
-            const pos = html.toLowerCase().lastIndexOf('</body>');
-            if (pos < 0) throw new Error('Could not find </body> in upstream index.html');
-            html = html.slice(0, pos) + script + html.slice(pos);
-            writeFileSync(path, html);
-          }
+          const pos = html.toLowerCase().lastIndexOf('</body>');
+          if (pos < 0) throw new Error('Could not find </body> in upstream index.html');
+          const scripts = ['admin.js', 'multiplayer.js']
+            .filter(file => !html.includes(file))
+            .map(file => '    <script src="./' + file + '?v=' + process.env.GITHUB_SHA + '"></script>')
+            .join(String.fromCharCode(10)) + String.fromCharCode(10);
+          html = html.slice(0, pos) + scripts + html.slice(pos);
+          writeFileSync(path, html);
           NODE
 
       - name: Configure GitHub Pages
