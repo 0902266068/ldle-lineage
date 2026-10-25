@@ -43,15 +43,15 @@ jobs:
           if (start < 0 || cast < 0 || heal < 0 || start > heal) {
             throw new Error('Could not locate automatic conversion and heal checks in upstream skills script');
           }
-          let end = source.indexOf('\\n    }', cast);
-          if (end < 0) end = source.indexOf('\\r\\n    }', cast);
+          let end = source.indexOf('\n    }', cast);
+          if (end < 0) end = source.indexOf('\r\n    }', cast);
           if (end < 0) throw new Error('Could not locate automatic conversion block end');
-          end += source.startsWith('\\r\\n', end) ? 7 : 6;
+          end += source.startsWith('\r\n', end) ? 7 : 6;
           let block = source.slice(start, end);
           source = source.slice(0, start) + source.slice(end);
           const newHeal = source.indexOf('    if(healSk && _teamLowPct <= healThr) castSkill(healSk);');
           block = block.replace('MP 達 90% 以上不轉換；', 'MP 達 90% 以上不轉換；先於自動治癒檢查。');
-          source = source.slice(0, newHeal) + block + '\\n\\n' + source.slice(newHeal);
+          source = source.slice(0, newHeal) + block + '\n\n' + source.slice(newHeal);
           writeFileSync(path, source);
           NODE
           node --input-type=module <<'NODE'
