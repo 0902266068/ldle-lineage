@@ -35,6 +35,27 @@ jobs:
           cp multiplayer.js _site/multiplayer.js
           node --input-type=module <<'NODE'
           import { readFileSync, writeFileSync } from 'node:fs';
+          const path = '_site/js/07-skills-cast.js';
+          let source = readFileSync(path, 'utf8');
+          const start = source.indexOf('    // 轉換魔法（妖精／法師下拉');
+          const cast = source.indexOf('        if(hpPct > th && player.mp < player.mmp * 0.9) castSkill(convId);', start);
+          const heal = source.indexOf('    if(healSk && _teamLowPct <= healThr) castSkill(healSk);');
+          if (start < 0 || cast < 0 || heal < 0 || start > heal) {
+            throw new Error('Could not locate automatic conversion and heal checks in upstream skills script');
+          }
+          let end = source.indexOf('\\n    }', cast);
+          if (end < 0) end = source.indexOf('\\r\\n    }', cast);
+          if (end < 0) throw new Error('Could not locate automatic conversion block end');
+          end += source.startsWith('\\r\\n', end) ? 7 : 6;
+          let block = source.slice(start, end);
+          source = source.slice(0, start) + source.slice(end);
+          const newHeal = source.indexOf('    if(healSk && _teamLowPct <= healThr) castSkill(healSk);');
+          block = block.replace('MP 達 90% 以上不轉換；', 'MP 達 90% 以上不轉換；先於自動治癒檢查。');
+          source = source.slice(0, newHeal) + block + '\\n\\n' + source.slice(newHeal);
+          writeFileSync(path, source);
+          NODE
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
           const path = '_site/index.html';
           let html = readFileSync(path, 'utf8');
           const pos = html.toLowerCase().lastIndexOf('</body>');
