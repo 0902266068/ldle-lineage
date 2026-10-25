@@ -26,6 +26,38 @@
   if(originalExpGainMult)window.getExpGainMult=function(lv){const base=originalExpGainMult(lv);if(!base||typeof player==='undefined'||Number(lv)!==Number(player.lv)||!player.buffs)return base;let mult=1;for(const [key,rate] of Object.entries({exp150:1.5,exp200:2,exp300:3,exp500:5,expStage2:2}))if(player.buffs[key]>0)mult*=rate;return base*mult;};
   const originalCalcStats=typeof calcStats==='function'?calcStats:null;
   if(originalCalcStats)window.calcStats=function(){const result=originalCalcStats.apply(this,arguments);if(typeof player!=='undefined'&&player?.d&&player?.buffs){let speed=1;for(const [key,rate] of Object.entries({speedCake:1.15,speedHonor:1.3,speedStage3:1.5}))if(player.buffs[key]>0)speed*=rate;player.d.aspd/=speed;if(player.d.aspdOff>0)player.d.aspdOff/=speed;}return result;};
+  const bonusAutoItems=[
+    {id:'potion_exp150',buff:'exp150',label:'經驗藥水 150%',mark:'EXP 1.5×'},
+    {id:'potion_exp200',buff:'exp200',label:'經驗藥水 200%',mark:'EXP 2×'},
+    {id:'potion_exp300',buff:'exp300',label:'經驗藥水 300%',mark:'EXP 3×'},
+    {id:'potion_exp500',buff:'exp500',label:'經驗藥水 500%',mark:'EXP 5×'},
+    {id:'potion_exp_stage2',buff:'expStage2',label:'二階段經驗藥水',mark:'EXP II'},
+    {id:'food_chocolate_cake',buff:'speedCake',label:'巧克力蛋糕',mark:'🍰'},
+    {id:'coin_honor',buff:'speedHonor',label:'名譽貨幣',mark:'🪙'},
+    {id:'potion_speed_stage3',buff:'speedStage3',label:'三階段加速藥水',mark:'⚡ III'}
+  ];
+  const bonusAutoKey=slot=>'idle-lineage-bonus-autouse-v1-'+String(slot||1);
+  let bonusAutoSlot=null,bonusAutoState={};
+  function activeBonusSlot(){return Number(typeof currentSlot!=='undefined'?currentSlot:1)||1;}
+  function readBonusAuto(slot){try{return JSON.parse(localStorage.getItem(bonusAutoKey(slot))||'{}')||{};}catch{return {};}}
+  function syncBonusAutoSettings(){const slot=activeBonusSlot();if(slot!==bonusAutoSlot){bonusAutoSlot=slot;bonusAutoState=readBonusAuto(slot);document.querySelectorAll('[data-bonus-autouse]').forEach(el=>el.checked=!!bonusAutoState[el.dataset.bonusAutouse]);}}
+  function installBonusAutoSettings(){
+    const anchor=document.getElementById('auto-buff-skills')?.parentElement;if(!anchor||document.getElementById('bonus-consumable-settings'))return;
+    const section=document.createElement('section');section.id='bonus-consumable-settings';section.className='col-span-2 mt-2 border-t border-slate-600 pt-2';
+    section.innerHTML='<div class="text-xs text-slate-400 mb-2">新道具自動使用（缺少時會以金幣自動購買）</div><div class="grid grid-cols-2 gap-x-3 gap-y-1.5">'+bonusAutoItems.map(x=>`<label class="cursor-pointer flex items-center gap-2"><input type="checkbox" class="w-4 h-4" data-bonus-autouse="${x.id}"><span class="text-xs text-slate-200">${x.label}</span></label>`).join('')+'</div>';
+    anchor.insertBefore(section,document.getElementById('auto-buff-skills'));section.querySelectorAll('[data-bonus-autouse]').forEach(el=>el.addEventListener('change',()=>{const slot=activeBonusSlot();if(slot!==bonusAutoSlot){bonusAutoSlot=slot;bonusAutoState=readBonusAuto(slot);}bonusAutoState[el.dataset.bonusAutouse]=el.checked;try{localStorage.setItem(bonusAutoKey(slot),JSON.stringify(bonusAutoState));}catch{}}));syncBonusAutoSettings();
+  }
+  function autoUseBonusItems(){
+    syncBonusAutoSettings();for(const cfg of bonusAutoItems){if(!bonusAutoState[cfg.id]||(player.buffs[cfg.buff]||0)>0)continue;let item=player.inv?.find(x=>x.id===cfg.id);if(!item){const def=DB.items[cfg.id],price=shopPrice(def.p||0);if(!def||player.gold<price)continue;player.gold-=price;gainItem(cfg.id,1,true,true);item=player.inv?.find(x=>x.id===cfg.id);}if(item)useItem(item.uid,true);}
+  }
+  if(typeof autoActions==='function'){const originalAutoActions=autoActions;window.autoActions=function(){const result=originalAutoActions.apply(this,arguments);if(typeof player!=='undefined'&&player?.buffs)autoUseBonusItems();return result;};}
+  function renderBonusStatus(){
+    const bar=document.getElementById('status-icon-bar');if(!bar||!player?.buffs)return;const active=new Set();
+    for(const item of bonusAutoItems){const remain=Number(player.buffs[item.buff])||0;if(remain<=0)continue;active.add(item.buff);let badge=bar.querySelector(`[data-bonus-status="${item.buff}"]`);if(!badge){badge=document.createElement('div');badge.className='status-icon';badge.dataset.bonusStatus=item.buff;badge.style.cssText='display:flex;align-items:center;justify-content:center;width:38px;height:38px;border:1px solid #a8c27c;border-radius:7px;background:linear-gradient(145deg,#253527,#101812);color:#f2e7bf;font:700 9px system-ui;text-align:center;line-height:1.05;box-shadow:0 2px 8px #0008';bar.appendChild(badge);}badge.textContent=item.mark;badge.title=`${item.label}｜剩餘 ${Math.ceil(remain)} 秒`;badge.setAttribute('aria-label',badge.title);}
+    bar.querySelectorAll('[data-bonus-status]').forEach(el=>{if(!active.has(el.dataset.bonusStatus))el.remove();});
+  }
+  if(typeof renderStatusIconBar==='function'){const originalRenderStatusIconBar=renderStatusIconBar;window.renderStatusIconBar=function(){originalRenderStatusIconBar.apply(this,arguments);renderBonusStatus();};}
+  installBonusAutoSettings();syncBonusAutoSettings();setInterval(()=>{installBonusAutoSettings();if(typeof player!=='undefined'&&player?.buffs)syncBonusAutoSettings();},1000);
   const source = {
     items: structuredClone(DB.items), mobs: structuredClone(DB.mobs),
     maps: structuredClone(DB.maps), drops: structuredClone(MOB_DROPS), exp: [...EXP_T]
