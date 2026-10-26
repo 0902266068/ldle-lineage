@@ -114,6 +114,52 @@ jobs:
           writeFileSync(path, html);
           NODE
 
+      - name: Build the separate refreshed site
+        run: |
+          mkdir -p _site/new
+          base64 -d xiaoshu-site-main.zip.b64 > /tmp/xiaoshu-site.zip
+          unzip -q /tmp/xiaoshu-site.zip -d /tmp/xiaoshu-site
+          rsync -a /tmp/xiaoshu-site/xiaoshu-site-main/ _site/new/
+          rm -f _site/new/CNAME
+          mkdir -p _site/new/game
+          rsync -a --exclude=.git upstream/ _site/new/game/
+          cp admin.js _site/new/game/admin.js
+          cp multiplayer.js _site/new/game/multiplayer.js
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const indexPath = '_site/new/game/index.html';
+          let html = readFileSync(indexPath, 'utf8');
+          const end = html.toLowerCase().lastIndexOf('</body>');
+          if (end < 0) throw new Error('Could not locate new game body end');
+          if (!html.includes('./admin.js')) html = html.slice(0, end) + '    <script src="./admin.js?v=' + process.env.GITHUB_SHA + '"></script>\\n' + html.slice(end);
+          writeFileSync(indexPath, html);
+          const patch = (path, before, after) => {
+            let source = readFileSync(path, 'utf8');
+            if (!source.includes(before)) throw new Error('Missing expected patch anchor in ' + path);
+            writeFileSync(path, source.replace(before, after));
+          };
+          patch('_site/new/game/js/01-drops-config.js', 'let _showMobHp = false;', 'let _showMobHp = true;');
+          patch('_site/new/game/js/03-combat-core.js', 'if (!state || state._pStunCycle || player.dead) return;', 'if (!state || state._pStunCycle || player.dead || (player.buffs && player.buffs.speedStage3 > 0)) return;');
+          const dropPath = '_site/new/game/js/05-kill-progression.js';
+          let drops = readFileSync(dropPath, 'utf8');
+          const dropAnchor = '    // === 怪物專屬掉落';
+          const at = drops.indexOf(dropAnchor);
+          if (at < 0) throw new Error('Could not locate generic drop settlement');
+          const extra = [
+            '    // 全地圖怪物低機率額外掉落三階段加速或隨機經驗藥水。',
+            "    if (!_kbNoReward && !mob.trollPlayer && !mob.siegeV2 && mob.race !== '建築' && mob.race !== '血盟') {",
+            "        if (Math.random() < partyDropRate(0.005)) { gainItem('potion_speed_stage3', 1); logSys('<span class=\\\"text-cyan-300 font-bold\\\">✦ 你從怪物身上拾起了三階段加速藥水。</span>'); }",
+            "        if (Math.random() < partyDropRate(0.005)) {",
+            "            const _expPotions = ['potion_exp150','potion_exp200','potion_exp300','potion_exp500','potion_exp_stage2','potion_exp_stage2_200','potion_exp_stage2_300','potion_exp_stage2_500'];",
+            "            const _expPotion = _expPotions[Math.floor(Math.random() * _expPotions.length)];",
+            "            if (DB.items[_expPotion]) { gainItem(_expPotion, 1); logSys('<span class=\\\"text-emerald-300 font-bold\\\">✦ 你從怪物身上拾起了隨機經驗藥水。</span>'); }",
+            '        }',
+            '    }',
+            ''
+          ].join(String.fromCharCode(10));
+          writeFileSync(dropPath, drops.slice(0, at) + extra + drops.slice(at));
+          NODE
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:
