@@ -59,11 +59,11 @@ jobs:
           const addition = [
             '    // 全地圖怪物低機率額外掉落三階段加速或隨機經驗藥水。',
             "    if (!_kbNoReward && !mob.trollPlayer && !mob.siegeV2 && mob.race !== '建築' && mob.race !== '血盟') {",
-            "        if (Math.random() < partyDropRate(0.005)) { gainItem('potion_speed_stage3', 1); logSys('<span class=\"text-cyan-300 font-bold\">✦ 你從怪物身上拾起了三階段加速藥水。</span>'); }",
+            "        if (Math.random() < partyDropRate(0.005)) { gainItem('potion_speed_stage3', 1); logSys(\"<span class='text-cyan-300 font-bold'>✦ 你從怪物身上拾起了三階段加速藥水。</span>\"); }",
             "        if (Math.random() < partyDropRate(0.005)) {",
             "            const _expPotions = ['potion_exp150','potion_exp200','potion_exp300','potion_exp500','potion_exp_stage2','potion_exp_stage2_200','potion_exp_stage2_300','potion_exp_stage2_500'];",
             "            const _expPotion = _expPotions[Math.floor(Math.random() * _expPotions.length)];",
-            "            if (DB.items[_expPotion]) { gainItem(_expPotion, 1); logSys('<span class=\"text-emerald-300 font-bold\">✦ 你從怪物身上拾起了隨機經驗藥水。</span>'); }",
+            "            if (DB.items[_expPotion]) { gainItem(_expPotion, 1); logSys(\"<span class='text-emerald-300 font-bold'>✦ 你從怪物身上拾起了隨機經驗藥水。</span>\"); }",
             '        }',
             '    }',
             ''
@@ -131,7 +131,7 @@ jobs:
           let html = readFileSync(indexPath, 'utf8');
           const end = html.toLowerCase().lastIndexOf('</body>');
           if (end < 0) throw new Error('Could not locate new game body end');
-          if (!html.includes('./admin.js')) html = html.slice(0, end) + '    <script src="./admin.js?v=' + process.env.GITHUB_SHA + '"></script>\\n' + html.slice(end);
+          if (!html.includes('./admin.js')) html = html.slice(0, end) + '    <script src="./admin.js?v=' + process.env.GITHUB_SHA + '"></script>' + String.fromCharCode(10) + html.slice(end);
           writeFileSync(indexPath, html);
           const patch = (path, before, after) => {
             let source = readFileSync(path, 'utf8');
@@ -148,11 +148,11 @@ jobs:
           const extra = [
             '    // 全地圖怪物低機率額外掉落三階段加速或隨機經驗藥水。',
             "    if (!_kbNoReward && !mob.trollPlayer && !mob.siegeV2 && mob.race !== '建築' && mob.race !== '血盟') {",
-            "        if (Math.random() < partyDropRate(0.005)) { gainItem('potion_speed_stage3', 1); logSys('<span class=\\\"text-cyan-300 font-bold\\\">✦ 你從怪物身上拾起了三階段加速藥水。</span>'); }",
+            "        if (Math.random() < partyDropRate(0.005)) { gainItem('potion_speed_stage3', 1); logSys(\"<span class='text-cyan-300 font-bold'>✦ 你從怪物身上拾起了三階段加速藥水。</span>\"); }",
             "        if (Math.random() < partyDropRate(0.005)) {",
             "            const _expPotions = ['potion_exp150','potion_exp200','potion_exp300','potion_exp500','potion_exp_stage2','potion_exp_stage2_200','potion_exp_stage2_300','potion_exp_stage2_500'];",
             "            const _expPotion = _expPotions[Math.floor(Math.random() * _expPotions.length)];",
-            "            if (DB.items[_expPotion]) { gainItem(_expPotion, 1); logSys('<span class=\\\"text-emerald-300 font-bold\\\">✦ 你從怪物身上拾起了隨機經驗藥水。</span>'); }",
+            "            if (DB.items[_expPotion]) { gainItem(_expPotion, 1); logSys(\"<span class='text-emerald-300 font-bold'>✦ 你從怪物身上拾起了隨機經驗藥水。</span>\"); }",
             '        }',
             '    }',
             ''
