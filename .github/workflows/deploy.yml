@@ -117,7 +117,7 @@ jobs:
       - name: Build the separate refreshed site
         run: |
           mkdir -p _site/new
-          base64 -d xiaoshu-site-main.zip.b64 > /tmp/xiaoshu-site.zip
+          cat xiaoshu-archive-*.b64 | base64 -d > /tmp/xiaoshu-site.zip
           unzip -q /tmp/xiaoshu-site.zip -d /tmp/xiaoshu-site
           rsync -a /tmp/xiaoshu-site/xiaoshu-site-main/ _site/new/
           rm -f _site/new/CNAME
