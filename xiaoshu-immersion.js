@@ -38,8 +38,8 @@
       slots.forEach(([label,id]) => {
         const b = document.createElement('button'); b.type='button'; b.className='xg-slot'; b.textContent=label;
         b.addEventListener('click', () => {
-          if (id) { const item=(window.player?.inv||[]).find(x=>x.id===id); if(item&&typeof window.useItem==='function') window.useItem(item.uid); }
-          else if (window.state) { window.state.running=!window.state.running; b.textContent=window.state.running?'AUTO':'暫停'; }
+          if (id) { const item=(typeof player!=='undefined'&&player.inv||[]).find(x=>x.id===id); if(item&&typeof useItem==='function') useItem(item.uid); }
+          else if (typeof state!=='undefined') { state.running=!state.running; b.textContent=state.running?'AUTO':'暫停'; }
         });
         hotbar.appendChild(b);
       });
@@ -52,12 +52,13 @@
       const name=document.getElementById('st-class');
       hud.textContent=(name?.textContent||'冒險者')+'　·　'+(map?.selectedOptions?.[0]?.textContent||'日出之國');
       const auto=hotbar.querySelector('.xg-slot');
-      if(auto&&window.state)auto.textContent=window.state.running?'AUTO':'暫停';
+      if(auto&&typeof state!=='undefined')auto.textContent=state.running?'AUTO':'暫停';
     };
     sync();
-    if (!window.__xiaoshuHudTimer) window.__xiaoshuHudTimer=setInterval(sync,800);
-    window.addEventListener('resize',sync,{passive:true});
+    window.__xiaoshuHudSync=sync;
+    if (!window.__xiaoshuHudTimer) window.__xiaoshuHudTimer=setInterval(()=>window.__xiaoshuHudSync?.(),800);
+    if (!window.__xiaoshuResizeBound) { window.addEventListener('resize',()=>window.__xiaoshuHudSync?.(),{passive:true}); window.__xiaoshuResizeBound=true; }
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
-  setInterval(install,1200);
+  setTimeout(install,600);
 })();
