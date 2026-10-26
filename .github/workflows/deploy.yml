@@ -56,6 +56,10 @@ jobs:
           const newHeal = source.indexOf("    let healSk = document.getElementById('sel-heal-skill').value;");
           block = block.replace('MP 達 90% 以上不轉換；', 'MP 達 90% 以上不轉換；先於自動治癒檢查。');
           source = source.slice(0, newHeal) + block + '\n\n' + source.slice(newHeal);
+          const towerGuard = ' && !state.prideClimb';
+          if (!source.includes(towerGuard)) throw new Error('Could not locate Tower auto-teleport exclusion');
+          source = source.replace(towerGuard, '');
+          source = source.replace('；🗼 傲慢之塔攀登中不自動瞬移；', '；奧塔王怪允許自動瞬移；');
           writeFileSync(path, source);
           NODE
           node --input-type=module <<'NODE'
