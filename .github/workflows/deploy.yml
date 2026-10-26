@@ -35,6 +35,44 @@ jobs:
           cp multiplayer.js _site/multiplayer.js
           node --input-type=module <<'NODE'
           import { readFileSync, writeFileSync } from 'node:fs';
+          const path = '_site/js/01-drops-config.js';
+          let source = readFileSync(path, 'utf8');
+          if (!source.includes('let _showMobHp = false;')) throw new Error('Could not locate monster HP bar default');
+          source = source.replace('let _showMobHp = false;', 'let _showMobHp = true;');
+          writeFileSync(path, source);
+          NODE
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const path = '_site/js/03-combat-core.js';
+          let source = readFileSync(path, 'utf8');
+          const before = 'if (!state || state._pStunCycle || player.dead) return;';
+          if (!source.includes(before)) throw new Error('Could not locate player hitstun guard');
+          source = source.replace(before, "if (!state || state._pStunCycle || player.dead || (player.buffs && player.buffs.speedStage3 > 0)) return;");
+          writeFileSync(path, source);
+          NODE
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const path = '_site/js/05-kill-progression.js';
+          let source = readFileSync(path, 'utf8');
+          const anchor = '    // === 怪物專屬掉落（依「怪物掉落資料.md」）：每樣物品各自獨立判定一次 ===';
+          if (!source.includes(anchor)) throw new Error('Could not locate generic monster drop settlement');
+          const addition = [
+            '    // 全地圖怪物低機率額外掉落三階段加速或隨機經驗藥水。',
+            "    if (!_kbNoReward && !mob.trollPlayer && !mob.siegeV2 && mob.race !== '建築' && mob.race !== '血盟') {",
+            "        if (Math.random() < partyDropRate(0.005)) { gainItem('potion_speed_stage3', 1); logSys('<span class=\"text-cyan-300 font-bold\">✦ 你從怪物身上拾起了三階段加速藥水。</span>'); }",
+            "        if (Math.random() < partyDropRate(0.005)) {",
+            "            const _expPotions = ['potion_exp150','potion_exp200','potion_exp300','potion_exp500','potion_exp_stage2','potion_exp_stage2_200','potion_exp_stage2_300','potion_exp_stage2_500'];",
+            "            const _expPotion = _expPotions[Math.floor(Math.random() * _expPotions.length)];",
+            "            if (DB.items[_expPotion]) { gainItem(_expPotion, 1); logSys('<span class=\"text-emerald-300 font-bold\">✦ 你從怪物身上拾起了隨機經驗藥水。</span>'); }",
+            '        }',
+            '    }',
+            ''
+          ].join(String.fromCharCode(10));
+          source = source.replace(anchor, addition + anchor);
+          writeFileSync(path, source);
+          NODE
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
           const path = '_site/js/07-skills-cast.js';
           let source = readFileSync(path, 'utf8');
           const start = source.indexOf('    // 轉換魔法（妖精／法師下拉');
