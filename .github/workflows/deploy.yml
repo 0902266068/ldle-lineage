@@ -121,7 +121,6 @@ jobs:
           unzip -q /tmp/xiaoshu-site.zip -d /tmp/xiaoshu-site
           rsync -a /tmp/xiaoshu-site/xiaoshu-site-main/ _site/new/
           sed -i 's#https://test.xiaoshu.gg/play/#game/#g' _site/new/index.html _site/new/nav.js
-          sed -i "s#<script src=\\\"nav.js\\\"></script>#<script src=\\\"nav.js?v=$GITHUB_SHA\\\"></script>#" _site/new/index.html
           rm -f _site/new/CNAME
           mkdir -p _site/new/game
           rsync -a --exclude=.git upstream/ _site/new/game/
@@ -131,6 +130,10 @@ jobs:
           node --input-type=module <<'NODE'
           import { readFileSync, writeFileSync } from 'node:fs';
           const indexPath = '_site/new/game/index.html';
+          const landingPath = '_site/new/index.html';
+          let landing = readFileSync(landingPath, 'utf8');
+          landing = landing.replace('<script src="nav.js"></script>', '<script src="nav.js?v=' + process.env.GITHUB_SHA + '"></script>');
+          writeFileSync(landingPath, landing);
           let html = readFileSync(indexPath, 'utf8');
           const end = html.toLowerCase().lastIndexOf('</body>');
           if (end < 0) throw new Error('Could not locate new game body end');
