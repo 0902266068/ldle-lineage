@@ -48,6 +48,10 @@ jobs:
           if (end < 0) throw new Error('Could not locate automatic conversion block end');
           end += source.startsWith('\r\n', end) ? 7 : 6;
           let block = source.slice(start, end);
+          const defaultGate = 'if(hpPct > th && player.mp < player.mmp * 0.9) castSkill(convId);';
+          const configurableGate = "let mpThEl = document.getElementById('set-mp-convert');\\n        let mpTh = mpThEl ? Math.max(0, Math.min(100, parseFloat(mpThEl.value) || 0)) : 90;\\n        if(hpPct > th && player.mp < player.mmp * (mpTh / 100)) castSkill(convId);";
+          if (!block.includes(defaultGate)) throw new Error('Could not locate default conversion MP threshold');
+          block = block.replace(defaultGate, configurableGate);
           source = source.slice(0, start) + source.slice(end);
           const newHeal = source.indexOf("    let healSk = document.getElementById('sel-heal-skill').value;");
           block = block.replace('MP 達 90% 以上不轉換；', 'MP 達 90% 以上不轉換；先於自動治癒檢查。');
