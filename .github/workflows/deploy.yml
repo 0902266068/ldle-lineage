@@ -120,6 +120,7 @@ jobs:
           cat xiaoshu-archive-*.b64 | base64 -d > /tmp/xiaoshu-site.zip
           unzip -q /tmp/xiaoshu-site.zip -d /tmp/xiaoshu-site
           rsync -a /tmp/xiaoshu-site/xiaoshu-site-main/ _site/new/
+          sed -i 's#https://test.xiaoshu.gg/play/#game/#g' _site/new/index.html _site/new/nav.js
           rm -f _site/new/CNAME
           mkdir -p _site/new/game
           rsync -a --exclude=.git upstream/ _site/new/game/
