@@ -135,6 +135,8 @@ jobs:
           landing = landing.replace('<script src="nav.js"></script>', '<script src="nav.js?v=' + process.env.GITHUB_SHA + '"></script>');
           writeFileSync(landingPath, landing);
           let html = readFileSync(indexPath, 'utf8');
+          const isolatedStorage = "<script>(()=>{const p='xiaoshu-new-v1:';const g=Storage.prototype;const get=g.getItem,set=g.setItem,remove=g.removeItem,key=g.key,len=Object.getOwnPropertyDescriptor(g,'length').get,local=window.localStorage;g.getItem=function(k){return this===local?get.call(this,p+k):get.call(this,k)};g.setItem=function(k,v){return this===local?set.call(this,p+k,v):set.call(this,k,v)};g.removeItem=function(k){return this===local?remove.call(this,p+k):remove.call(this,k)};g.clear=function(){if(this!==local)return;for(let i=this.length-1;i>=0;i--){const k=key.call(this,i);if(k&&k.startsWith(p))remove.call(this,k)}};g.key=function(i){if(this!==local)return key.call(this,i);const a=[];for(let j=0;j<len.call(this);j++){const k=key.call(this,j);if(k&&k.startsWith(p))a.push(k.slice(p.length))}return a[i]??null};Object.defineProperty(g,'length',{configurable:true,get(){if(this!==local)return len.call(this);let n=0;for(let i=0;i<len.call(this);i++){const k=key.call(this,i);if(k&&k.startsWith(p))n++}return n}})})();</script>";
+          html = html.replace(/<head[^>]*>/i, match => match + String.fromCharCode(10) + isolatedStorage);
           const end = html.toLowerCase().lastIndexOf('</body>');
           if (end < 0) throw new Error('Could not locate new game body end');
           if (!html.includes('./admin.js')) html = html.slice(0, end) + '    <script src="./admin.js?v=' + process.env.GITHUB_SHA + '"></script>' + String.fromCharCode(10) + html.slice(end);
