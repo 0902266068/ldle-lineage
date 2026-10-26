@@ -125,6 +125,7 @@ jobs:
           rsync -a --exclude=.git upstream/ _site/new/game/
           cp admin.js _site/new/game/admin.js
           cp multiplayer.js _site/new/game/multiplayer.js
+          cp xiaoshu-immersion.js _site/new/game/xiaoshu-immersion.js
           node --input-type=module <<'NODE'
           import { readFileSync, writeFileSync } from 'node:fs';
           const indexPath = '_site/new/game/index.html';
@@ -132,6 +133,8 @@ jobs:
           const end = html.toLowerCase().lastIndexOf('</body>');
           if (end < 0) throw new Error('Could not locate new game body end');
           if (!html.includes('./admin.js')) html = html.slice(0, end) + '    <script src="./admin.js?v=' + process.env.GITHUB_SHA + '"></script>' + String.fromCharCode(10) + html.slice(end);
+          html = html.slice(0, html.toLowerCase().lastIndexOf('</body>')) + '    <script src="./xiaoshu-immersion.js?v=' + process.env.GITHUB_SHA + '"></script>' + String.fromCharCode(10) + html.slice(html.toLowerCase().lastIndexOf('</body>'));
+          writeFileSync(indexPath, html);
           writeFileSync(indexPath, html);
           const patch = (path, before, after) => {
             let source = readFileSync(path, 'utf8');
