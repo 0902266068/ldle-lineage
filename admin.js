@@ -14,6 +14,8 @@
     potion_exp200: { n:'經驗藥水 200%',type:'pot',req:'all',p:20000,c:'text-emerald-300',d:'飲用後 30 分鐘內，獲得經驗倍率 ×2；可與其他階段經驗藥水疊加。',eff:'exp200',dur:1800,gachaWeight:0 },
     potion_exp300: { n:'經驗藥水 300%',type:'pot',req:'all',p:40000,c:'text-emerald-300',d:'飲用後 30 分鐘內，獲得經驗倍率 ×3；可與其他階段經驗藥水疊加。',eff:'exp300',dur:1800,gachaWeight:0 },
     potion_exp500: { n:'經驗藥水 500%',type:'pot',req:'all',p:80000,c:'text-emerald-300',d:'飲用後 30 分鐘內，獲得經驗倍率 ×5；可與其他階段經驗藥水疊加。',eff:'exp500',dur:1800,gachaWeight:0 },
+    potion_exp10000: { n:'經驗藥水 10000 倍',type:'pot',req:'all',p:2000000,c:'text-emerald-300',d:'飲用後 30 分鐘內，獲得經驗倍率 ×10000；可與其他階段經驗藥水疊加。',eff:'exp10000',dur:1800,gachaWeight:0 },
+    potion_exp_stage2_10000: { n:'二階段經驗藥水 10000 倍',type:'pot',req:'all',p:2400000,c:'text-teal-300',d:'飲用後 30 分鐘內，獲得二階段經驗倍率 ×10000；可與其他經驗藥水疊加。',eff:'expStage2_10000',dur:1800,gachaWeight:0 },
     potion_exp_stage2: { n:'二階段經驗藥水 150%',type:'pot',req:'all',p:12000,c:'text-teal-300',d:'飲用後 30 分鐘內，獲得二階段經驗倍率 ×1.5；可與其他經驗藥水疊加。',eff:'expStage2_150',dur:1800,gachaWeight:0 },
     potion_exp_stage2_200: { n:'二階段經驗藥水 200%',type:'pot',req:'all',p:24000,c:'text-teal-300',d:'飲用後 30 分鐘內，獲得二階段經驗倍率 ×2；可與其他經驗藥水疊加。',eff:'expStage2_200',dur:1800,gachaWeight:0 },
     potion_exp_stage2_300: { n:'二階段經驗藥水 300%',type:'pot',req:'all',p:48000,c:'text-teal-300',d:'飲用後 30 分鐘內，獲得二階段經驗倍率 ×3；可與其他經驗藥水疊加。',eff:'expStage2_300',dur:1800,gachaWeight:0 },
@@ -23,10 +25,10 @@
     potion_speed_stage3: { n:'三階段加速藥水',type:'pot',req:'all',p:50000,c:'text-cyan-300',d:'飲用後 30 分鐘內，攻擊速度提升 50%；可與其他加速效果疊加。',eff:'speedStage3',dur:1800,gachaWeight:0 }
   };
   for(const [id,item] of Object.entries(bonusItems))if(!DB.items[id])DB.items[id]=item;
-  if(typeof BUFF_NAMES!=='undefined')Object.assign(BUFF_NAMES,{exp150:'經驗藥水 150%',exp200:'經驗藥水 200%',exp300:'經驗藥水 300%',exp500:'經驗藥水 500%',expStage2:'舊版二階段經驗藥水',expStage2_150:'二階段經驗藥水 150%',expStage2_200:'二階段經驗藥水 200%',expStage2_300:'二階段經驗藥水 300%',expStage2_500:'二階段經驗藥水 500%',speedCake:'巧克力蛋糕',speedHonor:'名譽貨幣',speedStage3:'三階段加速藥水'});
+  if(typeof BUFF_NAMES!=='undefined')Object.assign(BUFF_NAMES,{exp150:'經驗藥水 150%',exp200:'經驗藥水 200%',exp300:'經驗藥水 300%',exp500:'經驗藥水 500%',exp10000:'經驗藥水 10000 倍',expStage2:'舊版二階段經驗藥水',expStage2_150:'二階段經驗藥水 150%',expStage2_200:'二階段經驗藥水 200%',expStage2_300:'二階段經驗藥水 300%',expStage2_500:'二階段經驗藥水 500%',expStage2_10000:'二階段經驗藥水 10000 倍',speedCake:'巧克力蛋糕',speedHonor:'名譽貨幣',speedStage3:'三階段加速藥水'});
   for(const id of Object.keys(bonusItems))if(typeof SHOP_LISTS!=='undefined')for(const shop of ['default','npc_boni','npc_skvati'])if(Array.isArray(SHOP_LISTS[shop])&&!SHOP_LISTS[shop].includes(id))SHOP_LISTS[shop].push(id);
   const originalExpGainMult=typeof getExpGainMult==='function'?getExpGainMult:null;
-  if(originalExpGainMult)window.getExpGainMult=function(lv){const base=originalExpGainMult(lv);if(!base||typeof player==='undefined'||Number(lv)!==Number(player.lv)||!player.buffs)return base;let mult=1;for(const [key,rate] of Object.entries({exp150:1.5,exp200:2,exp300:3,exp500:5,expStage2:2,expStage2_150:1.5,expStage2_200:2,expStage2_300:3,expStage2_500:5}))if(player.buffs[key]>0)mult*=rate;return base*mult;};
+  if(originalExpGainMult)window.getExpGainMult=function(lv){const base=originalExpGainMult(lv);if(!base||typeof player==='undefined'||Number(lv)!==Number(player.lv)||!player.buffs)return base;let mult=1;for(const [key,rate] of Object.entries({exp150:1.5,exp200:2,exp300:3,exp500:5,exp10000:10000,expStage2:2,expStage2_150:1.5,expStage2_200:2,expStage2_300:3,expStage2_500:5,expStage2_10000:10000}))if(player.buffs[key]>0)mult*=rate;return base*mult;};
   const originalCalcStats=typeof calcStats==='function'?calcStats:null;
   if(originalCalcStats)window.calcStats=function(){const result=originalCalcStats.apply(this,arguments);if(typeof player!=='undefined'&&player?.d&&player?.buffs){let speed=1;for(const [key,rate] of Object.entries({speedCake:1.15,speedHonor:1.3,speedStage3:1.5}))if(player.buffs[key]>0)speed*=rate;player.d.aspd/=speed;if(player.d.aspdOff>0)player.d.aspdOff/=speed;}return result;};
   const bonusAutoItems=[
@@ -34,6 +36,8 @@
     {id:'potion_exp200',buff:'exp200',label:'經驗藥水 200%',mark:'EXP 2×'},
     {id:'potion_exp300',buff:'exp300',label:'經驗藥水 300%',mark:'EXP 3×'},
     {id:'potion_exp500',buff:'exp500',label:'經驗藥水 500%',mark:'EXP 5×'},
+    {id:'potion_exp10000',buff:'exp10000',label:'經驗藥水 10000 倍',mark:'EXP 10000×'},
+    {id:'potion_exp_stage2_10000',buff:'expStage2_10000',label:'二階段經驗藥水 10000 倍',mark:'II 10000×'},
     {id:'potion_exp_stage2',buff:'expStage2_150',label:'二階段經驗藥水 150%',mark:'II 1.5×'},
     {id:'potion_exp_stage2_200',buff:'expStage2_200',label:'二階段經驗藥水 200%',mark:'II 2×'},
     {id:'potion_exp_stage2_300',buff:'expStage2_300',label:'二階段經驗藥水 300%',mark:'II 3×'},
@@ -278,7 +282,7 @@
     const data=characterDraft?.data, p=data?.p;
     const header=data?`<div class="afk-admin-note">${escapeHtml(p.name||'未命名')} · ${escapeHtml(p.cls)} · Lv.${Number(p.lv)||1} · 存檔 ${characterSlot}${characterDraft.active?'（目前正在遊玩）':''}</div>`:'';
     const body=characterDraftError?`<div class="afk-char-warning">${escapeHtml(characterDraftError)}</div>`:!data?'<div class="afk-char-empty">選擇一個存檔並按「載入角色」。</div>':`
-      ${header}<section class="afk-char-card"><h3>金幣</h3><div class="afk-char-form"><label>角色金幣<input id="afk-char-gold" type="number" min="0" max="2147483647" step="1" value="${Math.max(0,Math.floor(Number(p.gold)||0))}"></label></div></section>
+      ${header}<section class="afk-char-card"><h3>角色等級、素質與血量</h3><div class="afk-char-form"><label>等級<input data-char-stat="lv" type="number" min="1" max="9999" step="1" value="${Math.max(1,Math.floor(Number(p.lv)||1))}"></label><label>力量 STR<input data-char-stat="str" type="number" min="1" max="9999" step="1" value="${Math.max(1,Math.floor(Number(p.str)||1))}"></label><label>敏捷 DEX<input data-char-stat="dex" type="number" min="1" max="9999" step="1" value="${Math.max(1,Math.floor(Number(p.dex)||1))}"></label><label>體質 CON<input data-char-stat="con" type="number" min="1" max="9999" step="1" value="${Math.max(1,Math.floor(Number(p.con)||1))}"></label><label>智力 INT<input data-char-stat="int" type="number" min="1" max="9999" step="1" value="${Math.max(1,Math.floor(Number(p.int)||1))}"></label><label>精神 WIS<input data-char-stat="wis" type="number" min="1" max="9999" step="1" value="${Math.max(1,Math.floor(Number(p.wis)||1))}"></label><label>魅力 CHA<input data-char-stat="cha" type="number" min="1" max="9999" step="1" value="${Math.max(1,Math.floor(Number(p.cha)||1))}"></label><label>目前 HP<input data-char-stat="hp" type="number" min="0" max="2147483647" step="1" value="${Math.max(0,Math.floor(Number(p.hp)||0))}"></label></div><p class="afk-admin-note">調整等級與素質後，HP 上限會由遊戲依角色能力重新計算；目前 HP 會套用你輸入的數值。</p></section><section class="afk-char-card"><h3>金幣</h3><div class="afk-char-form"><label>角色金幣<input id="afk-char-gold" type="number" min="0" max="2147483647" step="1" value="${Math.max(0,Math.floor(Number(p.gold)||0))}"></label></div></section>
       <section class="afk-char-card"><h3>背包物品與裝備</h3>${charItemRows(p.inv||[],'inv')}<div style="height:12px"></div><div class="afk-char-picker"><strong class="afk-char-picker-title">選擇要加入的物品</strong><div class="afk-char-categories" role="group" aria-label="物品分類">${adminItemCategories.map(([key,label])=>`<button type="button" class="afk-admin-btn ${characterItemCategory===key?'primary':''}" data-item-category="${key}">${label}</button>`).join('')}</div>${['wpn','arm','acc'].includes(characterItemCategory)?`<div class="afk-char-categories afk-char-subcategories" role="group" aria-label="裝備細分類"><button type="button" class="afk-admin-btn ${characterItemSubcategory==='all'?'primary':''}" data-item-subcategory="all">全部${characterItemCategory==='wpn'?'武器':characterItemCategory==='arm'?'防具':'飾品'}</button>${adminSubcategoryOptions(characterItemCategory).map(name=>`<button type="button" class="afk-admin-btn ${characterItemSubcategory===name?'primary':''}" data-item-subcategory="${escapeAttr(name)}">${escapeHtml(name)}</button>`).join('')}</div>`:''}<label class="afk-char-item-search">搜尋裝備／物品<input id="afk-char-item-search" type="search" placeholder="輸入名稱或 ID" value="${escapeAttr(characterItemSearch)}"></label><div class="afk-char-item-results" id="afk-char-item-results">${adminItemOptions().map(([id,d])=>`<button type="button" class="afk-char-item-option ${characterSelectedItem===id?'selected':''}" data-pick-item="${escapeAttr(id)}"><span class="item-name">${escapeHtml(d.n||id)}</span><span class="item-meta">${escapeHtml(id)} · ${escapeHtml(adminItemCategory(id,d)==='wpn'?adminItemSubcategory(id,d):adminItemSubcategory(id,d)||({wpn:'武器',arm:'防具',acc:'飾品',pot:'藥水',skillbk:'技能書',scroll:'卷軸',mat:'材料',quest:'任務'}[adminItemCategory(id,d)]||'其他'))}</span></button>`).join('')||'<div class="afk-char-empty">找不到符合的物品，請換分類或關鍵字。</div>'}</div><div class="afk-char-add"><div class="afk-char-picked" id="afk-char-picked">${characterSelectedItem&&DB.items[characterSelectedItem]?`已選：${escapeHtml(DB.items[characterSelectedItem].n||characterSelectedItem)}`:'尚未選擇物品'}</div><label style="display:grid;gap:5px;font-size:11px;color:#aab4a5">數量<input id="afk-char-add-count" type="number" min="1" max="999999" value="1"></label><label style="display:grid;gap:5px;font-size:11px;color:#aab4a5">強化<input id="afk-char-add-en" type="number" min="0" max="30" value="0"></label><button class="afk-admin-btn primary" id="afk-char-add">加入背包</button></div></div></section>
       <section class="afk-char-card"><h3>已裝備欄位</h3>${charItemRows(charRowsFromDraft('eq'),'eq')}</section>
       <div class="afk-admin-actions"><button class="afk-admin-btn primary" id="afk-char-save">儲存角色修改</button><button class="afk-admin-btn" id="afk-char-reload">取消修改／重新載入</button></div><p class="afk-admin-note">編輯已裝備欄位會直接改角色目前裝備。若同一角色還在其他分頁遊玩，請先關閉其他分頁，避免舊分頁存檔覆蓋修改。</p>`;
@@ -291,6 +295,7 @@
     bindItemPicks();
     main.querySelector('#afk-char-load').onclick=()=>loadCharDraft();
     if(!data)return;
+    main.querySelectorAll('[data-char-stat]').forEach(input=>input.oninput=()=>{const field=input.dataset.charStat,max=field==='hp'?2147483647:9999,min=field==='hp'?0:1;p[field]=Math.max(min,Math.min(max,Math.floor(Number(input.value)||min)));});
     const gold=main.querySelector('#afk-char-gold');gold.oninput=()=>{p.gold=Math.max(0,Math.floor(Number(gold.value)||0));};
     main.querySelectorAll('[data-char-scope]').forEach(input=>input.onchange=()=>{
       const scope=input.dataset.charScope,field=input.dataset.charField,index=Number(input.dataset.index);
@@ -333,7 +338,10 @@
       let ok;
       if(characterDraft.runtime&&isActiveSlot(characterSlot)){
         player.gold=p.gold;player.inv=clone(p.inv);player.eq=clone(p.eq||{});
+        for(const field of ['lv','str','dex','con','int','wis','cha'])player[field]=Math.max(1,Math.min(9999,Math.floor(Number(p[field])||1)));
         if(typeof calcStats==='function')calcStats();
+        const requestedHp=Math.max(0,Math.floor(Number(p.hp)||0)),maxHp=Number(player.d?.maxHp??player.d?.hpMax??player.maxHp??p.maxHp);
+        player.hp=Number.isFinite(maxHp)&&maxHp>0?Math.min(requestedHp,maxHp):requestedHp;p.hp=player.hp;
         if(typeof renderTabs==='function')renderTabs(true);
         ok=typeof saveGame==='function'&&saveGame()===true;
       }else{
