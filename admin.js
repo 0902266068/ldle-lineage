@@ -274,6 +274,20 @@
     const list=Object.entries(DB.items).filter(([id,d])=>(characterItemCategory==='all'||adminItemCategory(id,d)===characterItemCategory)&&(characterItemSubcategory==='all'||adminItemSubcategory(id,d)===characterItemSubcategory)&&(`${d?.n||id} ${id}`).toLowerCase().includes(characterItemSearch.trim().toLowerCase())).sort((a,b)=>(a[1]?.n||a[0]).localeCompare(b[1]?.n||b[0],'zh-Hant'));
     return list;
   }
+  function characterStatValue(p,field){
+    if(field==='lv')return Number(p.lv)||1;
+    return Math.max(1,Math.floor(Number(p.base?.[field]||0)+Number(p.alloc?.[field]||0)+Number(p.panacea?.[field]||0))||1);
+  }
+  function applyCharacterStatEdits(p,target=p){
+    const edits=p._adminStats||{};
+    target.alloc=target.alloc||{};
+    for(const field of ['str','dex','con','int','wis','cha']){
+      if(edits[field]==null)continue;
+      const base=Number(target.base?.[field])||0,panacea=Number(target.panacea?.[field])||0;
+      target.alloc[field]=Math.max(0,Math.floor(Number(edits[field])||1)-base-panacea);
+    }
+    delete p._adminStats;
+  }
   function renderCharacters(){
     const slots=Array.from({length:16},(_,i)=>i+1).map(n=>{
       let label=`存檔 ${n} · 空`;try{const sum=typeof slotSummary==='function'?slotSummary(n):null;if(sum)label=`存檔 ${n} · ${sum.name||'未命名'} Lv.${sum.lv} · ${sum.gold.toLocaleString()} G`;}catch{}
@@ -282,7 +296,7 @@
     const data=characterDraft?.data, p=data?.p;
     const header=data?`<div class="afk-admin-note">${escapeHtml(p.name||'未命名')} · ${escapeHtml(p.cls)} · Lv.${Number(p.lv)||1} · 存檔 ${characterSlot}${characterDraft.active?'（目前正在遊玩）':''}</div>`:'';
     const body=characterDraftError?`<div class="afk-char-warning">${escapeHtml(characterDraftError)}</div>`:!data?'<div class="afk-char-empty">選擇一個存檔並按「載入角色」。</div>':`
-      ${header}<section class="afk-char-card"><h3>角色等級、素質與血量</h3><div class="afk-char-form"><label>等級<input data-char-stat="lv" type="number" min="1" max="9999" step="1" value="${Math.max(1,Math.floor(Number(p.lv)||1))}"></label><label>力量 STR<input data-char-stat="str" type="number" min="1" max="9999" step="1" value="${Math.max(1,Math.floor(Number(p.str)||1))}"></label><label>敏捷 DEX<input data-char-stat="dex" type="number" min="1" max="9999" step="1" value="${Math.max(1,Math.floor(Number(p.dex)||1))}"></label><label>體質 CON<input data-char-stat="con" type="number" min="1" max="9999" step="1" value="${Math.max(1,Math.floor(Number(p.con)||1))}"></label><label>智力 INT<input data-char-stat="int" type="number" min="1" max="9999" step="1" value="${Math.max(1,Math.floor(Number(p.int)||1))}"></label><label>精神 WIS<input data-char-stat="wis" type="number" min="1" max="9999" step="1" value="${Math.max(1,Math.floor(Number(p.wis)||1))}"></label><label>魅力 CHA<input data-char-stat="cha" type="number" min="1" max="9999" step="1" value="${Math.max(1,Math.floor(Number(p.cha)||1))}"></label><label>目前 HP<input data-char-stat="hp" type="number" min="0" max="2147483647" step="1" value="${Math.max(0,Math.floor(Number(p.hp)||0))}"></label></div><p class="afk-admin-note">調整等級與素質後，HP 上限會由遊戲依角色能力重新計算；目前 HP 會套用你輸入的數值。</p></section><section class="afk-char-card"><h3>金幣</h3><div class="afk-char-form"><label>角色金幣<input id="afk-char-gold" type="number" min="0" max="2147483647" step="1" value="${Math.max(0,Math.floor(Number(p.gold)||0))}"></label></div></section>
+      ${header}<section class="afk-char-card"><h3>角色等級、素質與血量</h3><div class="afk-char-form"><label>等級<input data-char-stat="lv" type="number" min="1" max="9999" step="1" value="${Math.max(1,Math.floor(Number(p.lv)||1))}"></label><label>力量 STR<input data-char-stat="str" type="number" min="1" max="9999" step="1" value="${Math.max(1,Math.floor(characterStatValue(p,'str')))}"></label><label>敏捷 DEX<input data-char-stat="dex" type="number" min="1" max="9999" step="1" value="${Math.max(1,Math.floor(characterStatValue(p,'dex')))}"></label><label>體質 CON<input data-char-stat="con" type="number" min="1" max="9999" step="1" value="${Math.max(1,Math.floor(characterStatValue(p,'con')))}"></label><label>智力 INT<input data-char-stat="int" type="number" min="1" max="9999" step="1" value="${Math.max(1,Math.floor(characterStatValue(p,'int')))}"></label><label>精神 WIS<input data-char-stat="wis" type="number" min="1" max="9999" step="1" value="${Math.max(1,Math.floor(characterStatValue(p,'wis')))}"></label><label>魅力 CHA<input data-char-stat="cha" type="number" min="1" max="9999" step="1" value="${Math.max(1,Math.floor(characterStatValue(p,'cha')))}"></label><label>目前 HP<input data-char-stat="hp" type="number" min="0" max="2147483647" step="1" value="${Math.max(0,Math.floor(Number(p.hp)||0))}"></label></div><p class="afk-admin-note">調整等級與素質後，HP 上限會由遊戲依角色能力重新計算；目前 HP 會套用你輸入的數值。</p></section><section class="afk-char-card"><h3>金幣</h3><div class="afk-char-form"><label>角色金幣<input id="afk-char-gold" type="number" min="0" max="2147483647" step="1" value="${Math.max(0,Math.floor(Number(p.gold)||0))}"></label></div></section>
       <section class="afk-char-card"><h3>背包物品與裝備</h3>${charItemRows(p.inv||[],'inv')}<div style="height:12px"></div><div class="afk-char-picker"><strong class="afk-char-picker-title">選擇要加入的物品</strong><div class="afk-char-categories" role="group" aria-label="物品分類">${adminItemCategories.map(([key,label])=>`<button type="button" class="afk-admin-btn ${characterItemCategory===key?'primary':''}" data-item-category="${key}">${label}</button>`).join('')}</div>${['wpn','arm','acc'].includes(characterItemCategory)?`<div class="afk-char-categories afk-char-subcategories" role="group" aria-label="裝備細分類"><button type="button" class="afk-admin-btn ${characterItemSubcategory==='all'?'primary':''}" data-item-subcategory="all">全部${characterItemCategory==='wpn'?'武器':characterItemCategory==='arm'?'防具':'飾品'}</button>${adminSubcategoryOptions(characterItemCategory).map(name=>`<button type="button" class="afk-admin-btn ${characterItemSubcategory===name?'primary':''}" data-item-subcategory="${escapeAttr(name)}">${escapeHtml(name)}</button>`).join('')}</div>`:''}<label class="afk-char-item-search">搜尋裝備／物品<input id="afk-char-item-search" type="search" placeholder="輸入名稱或 ID" value="${escapeAttr(characterItemSearch)}"></label><div class="afk-char-item-results" id="afk-char-item-results">${adminItemOptions().map(([id,d])=>`<button type="button" class="afk-char-item-option ${characterSelectedItem===id?'selected':''}" data-pick-item="${escapeAttr(id)}"><span class="item-name">${escapeHtml(d.n||id)}</span><span class="item-meta">${escapeHtml(id)} · ${escapeHtml(adminItemCategory(id,d)==='wpn'?adminItemSubcategory(id,d):adminItemSubcategory(id,d)||({wpn:'武器',arm:'防具',acc:'飾品',pot:'藥水',skillbk:'技能書',scroll:'卷軸',mat:'材料',quest:'任務'}[adminItemCategory(id,d)]||'其他'))}</span></button>`).join('')||'<div class="afk-char-empty">找不到符合的物品，請換分類或關鍵字。</div>'}</div><div class="afk-char-add"><div class="afk-char-picked" id="afk-char-picked">${characterSelectedItem&&DB.items[characterSelectedItem]?`已選：${escapeHtml(DB.items[characterSelectedItem].n||characterSelectedItem)}`:'尚未選擇物品'}</div><label style="display:grid;gap:5px;font-size:11px;color:#aab4a5">數量<input id="afk-char-add-count" type="number" min="1" max="999999" value="1"></label><label style="display:grid;gap:5px;font-size:11px;color:#aab4a5">強化<input id="afk-char-add-en" type="number" min="0" max="30" value="0"></label><button class="afk-admin-btn primary" id="afk-char-add">加入背包</button></div></div></section>
       <section class="afk-char-card"><h3>已裝備欄位</h3>${charItemRows(charRowsFromDraft('eq'),'eq')}</section>
       <div class="afk-admin-actions"><button class="afk-admin-btn primary" id="afk-char-save">儲存角色修改</button><button class="afk-admin-btn" id="afk-char-reload">取消修改／重新載入</button></div><p class="afk-admin-note">編輯已裝備欄位會直接改角色目前裝備。若同一角色還在其他分頁遊玩，請先關閉其他分頁，避免舊分頁存檔覆蓋修改。</p>`;
@@ -295,7 +309,7 @@
     bindItemPicks();
     main.querySelector('#afk-char-load').onclick=()=>loadCharDraft();
     if(!data)return;
-    main.querySelectorAll('[data-char-stat]').forEach(input=>input.oninput=()=>{const field=input.dataset.charStat,max=field==='hp'?2147483647:9999,min=field==='hp'?0:1;p[field]=Math.max(min,Math.min(max,Math.floor(Number(input.value)||min)));});
+    main.querySelectorAll('[data-char-stat]').forEach(input=>input.oninput=()=>{const field=input.dataset.charStat,max=field==='hp'?2147483647:9999,min=field==='hp'?0:1;if(['str','dex','con','int','wis','cha'].includes(field)){p._adminStats=p._adminStats||{};p._adminStats[field]=Math.max(min,Math.min(max,Math.floor(Number(input.value)||min)));}else p[field]=Math.max(min,Math.min(max,Math.floor(Number(input.value)||min)));});
     const gold=main.querySelector('#afk-char-gold');gold.oninput=()=>{p.gold=Math.max(0,Math.floor(Number(gold.value)||0));};
     main.querySelectorAll('[data-char-scope]').forEach(input=>input.onchange=()=>{
       const scope=input.dataset.charScope,field=input.dataset.charField,index=Number(input.dataset.index);
@@ -338,13 +352,14 @@
       let ok;
       if(characterDraft.runtime&&isActiveSlot(characterSlot)){
         player.gold=p.gold;player.inv=clone(p.inv);player.eq=clone(p.eq||{});
-        for(const field of ['lv','str','dex','con','int','wis','cha'])player[field]=Math.max(1,Math.min(9999,Math.floor(Number(p[field])||1)));
+        player.lv=Math.max(1,Math.min(9999,Math.floor(Number(p.lv)||1)));applyCharacterStatEdits(p,player);
         if(typeof calcStats==='function')calcStats();
         const requestedHp=Math.max(0,Math.floor(Number(p.hp)||0)),maxHp=Number(player.d?.maxHp??player.d?.hpMax??player.maxHp??p.maxHp);
         player.hp=Number.isFinite(maxHp)&&maxHp>0?Math.min(requestedHp,maxHp):requestedHp;p.hp=player.hp;
         if(typeof renderTabs==='function')renderTabs(true);
         ok=typeof saveGame==='function'&&saveGame()===true;
       }else{
+        applyCharacterStatEdits(p);
         const data=JSON.stringify(characterDraft.data);
         const signed=typeof _saveWrap==='function'?_saveWrap(data):data;
         ok=typeof _lzSet==='function'?_lzSet(slotKey(characterSlot),signed):(localStorage.setItem(slotKey(characterSlot),signed),true);
